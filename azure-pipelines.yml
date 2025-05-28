@@ -1,35 +1,29 @@
-# Docker
-# Build and push an image to Azure Container Registry
-# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
-
 trigger:
 - main
 
-resources:
-- repo: self
-
 variables:
-  # Container registry service connection established during pipeline creation
   dockerRegistryServiceConnection: 'cd711fb4-6f1e-40db-b70a-ad286cc28597'
   imageRepository: 'akvcreatektetrisgameapp'
   containerRegistry: 'arbazacr.azurecr.io'
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
   tag: '$(Build.BuildId)'
 
-  # Agent VM image name
-  vmImageName: 'ubuntu-latest'
+  # If you're using a self-hosted agent, replace this with your agent pool name
+  selfHostedPoolName: 'Azure Pipelines'
 
 stages:
 - stage: Build
-  displayName: Build and push stage
+  displayName: Build and Push Docker Image
   jobs:
-  - job: Build
-    displayName: Build
+  - job: BuildAndPush
+    displayName: Build and Push Job
     pool:
-      vmImage: $(vmImageName)
+      name: $(selfHostedPoolName)  # Use your actual self-hosted agent pool name
     steps:
+    - checkout: self
+
     - task: Docker@2
-      displayName: Build and push an image to container registry
+      displayName: Build and Push Docker Image to ACR
       inputs:
         command: buildAndPush
         repository: $(imageRepository)
@@ -37,3 +31,4 @@ stages:
         containerRegistry: $(dockerRegistryServiceConnection)
         tags: |
           $(tag)
+          latest
